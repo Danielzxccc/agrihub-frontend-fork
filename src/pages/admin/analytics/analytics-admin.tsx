@@ -1,6 +1,6 @@
 import AdminOutletContainer from "@components/admin/layout/container/AdminOutletContainer";
 import { Card } from "@components/ui/card";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import BarHarvestWithered from "../charts/bar-harvest-withered";
 import {
   Carousel,
@@ -18,7 +18,7 @@ import RatesFeedback from "../charts/rates-feedback";
 import GrowthRateLineChartAnalytics from "../charts/line-growthrate-analytics";
 import TableFarmGrowthrate from "../charts/table-farm-growthrate";
 import DougnutLandsizeAnalytics from "../charts/dougnut-landsize-analytics";
-import banner from "@assets/images/ForAnalytics-2.webp";
+import banner from "@assets/analytics-top.png";
 import Autoplay from "embla-carousel-autoplay";
 import {
   Avatar,
@@ -27,6 +27,12 @@ import {
 } from "../../../components/ui/avatar";
 import BarDistrictOverviewAnalytics from "../charts/bar-district-overview-analytics";
 import { Skeleton } from "../../../components/ui/skeleton";
+import BarCropHarvest from "../charts/bar-crop-harvest";
+import { useReactToPrint } from "react-to-print";
+import { Button } from "../../../components/ui/button";
+import { Margin, Resolution, usePDF } from "react-to-pdf";
+import { FaFilePdf } from "react-icons/fa6";
+
 const AnalyticsAdmin = () => {
   const [sort, setSort] = useState<"asc" | "desc" | undefined>("asc");
   const { data: lowestGrowth, isLoading: TopFarmLoad } =
@@ -34,11 +40,25 @@ const AnalyticsAdmin = () => {
   const { data: favouriteCrop } = useGetReportFavouriteCrops();
 
   // console.log(lowestGrowth[0], "asdasd");
+  const { toPDF, targetRef } = usePDF({
+    filename: `${new Date().toLocaleDateString()}-report.pdf`,
+    page: {
+      format: "legal"
+    }
+  });
 
   return (
     <AdminOutletContainer>
-      <div className="grid grid-cols-12  gap-4 w-full">
-        <div className=" col-span-12 lg:col-span-12 flex flex-col gap-y-4">
+      <div className="grid grid-cols-12  gap-4 w-full print:w-[50rem]">
+        <div className=" col-span-12 flex justify-end">
+          <Button className="gap-1" onClick={() => toPDF()}>
+            <FaFilePdf size={16} /> Export PDF
+          </Button>
+        </div>
+        <div
+          ref={targetRef}
+          className=" col-span-12 lg:col-span-12 flex flex-col gap-y-4"
+        >
           <div className=" grid grid-cols-12  gap-4">
             {TopFarmLoad ? (
               <Skeleton className="col-span-12 lg:col-span-8 md:h-[350px] h-[250px] rounded relative" />
@@ -57,10 +77,10 @@ const AnalyticsAdmin = () => {
                     {lowestGrowth && lowestGrowth[0]?.farm_name?.charAt(1)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="absolute md:top-[10.4rem] top-[6.5rem] right-[10%] uppercase md:text-3xl text-xl font-poppins-bold text-white">
+                <div className="absolute md:top-[10.4rem] top-[6.5rem] right-[10%] uppercase md:text-lg w-[55%] text-end text-md font-poppins-bold text-white">
                   {lowestGrowth && lowestGrowth[0]?.farm_name}
                 </div>
-                <div className="absolute bottom-[5.5rem] right-[10%] uppercase md:text-3xl text-xl font-poppins-bold text-white">
+                <div className="absolute md:bottom-[2.5rem] bottom-[2.5rem] right-[10%] uppercase md:text-3xl text-xl font-poppins-bold text-white">
                   {lowestGrowth &&
                     Number(lowestGrowth[0].avg_growth_rate).toFixed(2)}
                   %
@@ -159,6 +179,9 @@ const AnalyticsAdmin = () => {
           </div>
           <div>
             <DougnutLandsizeAnalytics />
+          </div>
+          <div>
+            <BarCropHarvest />
           </div>
         </div>
       </div>
